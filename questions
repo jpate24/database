@@ -1,0 +1,28 @@
+Questions
+
+1. Consider the thread created in start_listener. How many threads with this functionality should be running on the server at any given time?
+
+In order to correctly implement multithreaded programming, the amount of threads would have to match the number of clients currently accessing the server at any given time.
+This insures that we are maximizing our use of the current threads in a thread safe manner. Each time start listener is called, the function takes in an argument 'server 
+which takes in a file pointer, this is presumabley the 'client_constructor' function. This would mean that each time a client was created a thread would be as well, meeting the
+multithreaded requirements of the database.
+
+2. In the listener function, what do each of the following fields of the sockaddr_in struct represent: sin_family, sin_port, and sin_addr.s_addr?
+
+In the listener function, the field sockaddr_in.sin_family respresents the address family for the transport address which is set to AF_INET. The sockaddr_in.sin_port represents port number. And the sockaddr_in.sin_addr.s_addr is a data structure containing the protocol transport address. Both sin_port and sin_addr.s_addr fields are set by predefined variables or constants.
+
+3. What is the purpose of each of the following function calls in listener: socket, bind, listen, and accept? You should explain what each call does and what the effect would be if it were not called.
+
+The socket function opens creates a socket, or endpoint for communciation, and it returns a file descriptor which point to the aforementioned place. If this call were to be voided then the point of communication to the server would not be known and the accept command would not know which socket to specify in its input. The bind command creates a link between the inputted socket fid as returned from socket() and a socket address. This command is necessary because the socket does not yet have an address assigned to it and without such would not be able to recieve connections. The listen command causes a socket, when passed in, to listen for incoming connections via the accept command. If this function were to not be called then the socket would not be notified to listen for incoming connections and no connections would be made between client and server. The accept function pops the first connection from a queue and creates a connected socket, then returns a fid. This command is what creates connections and without such would not be done.
+
+4. Which protocol (TCP or UDP) is used for communication? Why is this protocol used? (Hint: see line 37 in comm.c)
+
+TCP is used because the SOCK_STREAM type defines the socket as a "connection-based byte streams". This protocol is used so that the client and server may communicate and relay information between the two. Without a TCP connection there would be no way for the user to query for information and recieve results.
+
+5. Describe what comm_serve does. How are the response and command parameters used? What would happen if the stream pointed to by cxstr were closed?
+
+comm_serve is a function that takes in a file to be read or written to, indicating that a rwlock will probably be involved in the future, and a commnd a response char. The response char is written to whatever the file variables points to contingent upon response not having reached EOF or being empty ('/n'). This information is relayed via fputs. The command variable is whats read from the file via the fgets command. If the stream pointed to by cxstr were closed you would get undefined behavrior, it is possible that the program could read from another previously opened file or it could produce a segmentation fault. This woul most likely be in the case where there was a rwlock on the file.
+
+6. Describe, in detail, what happens during each iteration of the while loop in the listener function. Be sure to include explanations of all significant function calls.
+
+The while loop condition executes as long as while(1). This means that the while loop will run until it is exited via a break statement or the program ends due to potentially an EOF, error or kill signal. Seeing as there are no break statements it is most likely one of the latter. The loop first initializes an int csock and struct as defined in comm.h. A variable client_len is set to the size of this struct "client_addr". The accept command is then called popping the next conneciton from lsock which was created by the earlier socket() command. It sets the returned file descriptor to csock. If the function returns -1 then the program errors. Next the while loop prints "recieved connection from (client addr and port)" to stderr via the fprintf function. The fil epointed to by csock is then opened with permision to write and the pointer is returned to cxstr. Finally, the server command is called passing in the pointer to the newly opened file.
